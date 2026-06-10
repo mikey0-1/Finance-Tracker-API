@@ -1,9 +1,11 @@
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from tracker.serializers import UserSerializer, RegisterSerializer
+
+from tracker.models import Category
+from tracker.serializers import UserSerializer, RegisterSerializer, CategorySerializer
 
 
 class RegisterView(APIView):
@@ -22,3 +24,12 @@ class ProfileView(RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    serializer_class = CategorySerializer
+
+    def get_queryset(self):
+        return Category.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

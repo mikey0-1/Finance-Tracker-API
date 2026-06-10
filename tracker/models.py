@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 
+from FinanceTrackerAPI.settings import AUTH_USER_MODEL
+
+
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         email = self.normalize_email(email)
@@ -28,3 +31,17 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+class Category(models.Model):
+    TYPE_CHOICES = {
+        '1': 'income',
+        '2': 'expense',
+    }
+    user = models.ForeignKey(AUTH_USER_MODEL,on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=100, choices=TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'name')

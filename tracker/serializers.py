@@ -1,6 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import User as UserModel
+from .models import User as UserModel, Category
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 
@@ -42,3 +42,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name',''),
             last_name=validated_data.get('last_name', ''),
         )
+
+class CategorySerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Category
+        fields = ('id', 'name', 'type', 'created_at')
+        read_only_fields = ('id', 'created_at')
