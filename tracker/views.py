@@ -4,8 +4,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from tracker.models import Category
-from tracker.serializers import UserSerializer, RegisterSerializer, CategorySerializer
+from tracker.models import Category, Transaction
+from tracker.serializers import UserSerializer, RegisterSerializer, CategorySerializer, TransactionSerializer
 
 
 class RegisterView(APIView):
@@ -29,7 +29,22 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
 
     def get_queryset(self):
-        return Category.objects.filter(user=self.request.user)
+        return Category.objects.filter(user=self.request.user).order_by('name')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class TransactionViewSet(viewsets.ModelViewSet):
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Transaction.objects.filter(user=self.request.user).select_related('category').order_by('-date')
+
+    def get_serializer_class(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

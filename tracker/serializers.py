@@ -1,6 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import User as UserModel, Category
+from .models import User as UserModel, Category, Transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 
@@ -50,3 +50,37 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = ('id', 'name', 'type', 'created_at')
         read_only_fields = ('id', 'created_at')
+
+class TransactionSerializer(serializers.ModelSerializer):
+    category_name = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Transaction
+        fields = (
+            'id',
+            'category',
+            'category_name',
+            'amount',
+            'type',
+            'description',
+            'date',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = ('created_at', 'updated_at')
+
+    def get_category_name(self, obj):
+        if obj.category:
+            return obj.category.name
+        return None
+
+    def validate_amount(self, amount):
+        if amount < 0:
+            raise serializers.ValidationError('Amount must be greater than 0')
+        return amount
+
+    def validate_category(self, category):
+        request = self.context.get('request')
+        if category and category.user != request.user:
+            raise serializers.ValidationError('Category can not be changed')
+        return category
