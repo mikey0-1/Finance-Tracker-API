@@ -1,8 +1,11 @@
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from .pagination import TransactionCursorPagination
 
 from tracker.models import Category, Transaction
 from tracker.serializers import UserSerializer, RegisterSerializer, CategorySerializer, TransactionSerializer
@@ -37,6 +40,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = TransactionCursorPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["date", "amount", "created_at"]
 
     def get_queryset(self):
         return Transaction.objects.filter(user=self.request.user).select_related('category').order_by('-date')
