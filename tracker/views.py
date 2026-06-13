@@ -8,10 +8,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .pagination import TransactionCursorPagination
 from django.db.models.functions import TruncMonth
-
 from tracker.models import Category, Transaction
 from tracker.serializers import UserSerializer, RegisterSerializer, CategorySerializer, TransactionSerializer
-
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -57,6 +56,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter('start_date', str, description='Filter from date (YYYY-MM-DD)'),
+        OpenApiParameter('end_date', str, description='Filter to date (YYYY-MM-DD)'),
+    ]
+)
 class SummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -90,6 +95,12 @@ class SummaryView(APIView):
             }
         })
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter('start_date', str, description='Filter from date (YYYY-MM-DD)'),
+        OpenApiParameter('end_date', str, description='Filter to date (YYYY-MM-DD)'),
+    ]
+)
 class MonthlySummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -117,6 +128,12 @@ class MonthlySummaryView(APIView):
         } for entry in monthly ]
         return Response(data)
 
+@extend_schema(
+    parameters=[
+        OpenApiParameter('start_date', str, description='Filter from date (YYYY-MM-DD)'),
+        OpenApiParameter('end_date', str, description='Filter to date (YYYY-MM-DD)'),
+    ]
+)
 class CategorySummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
